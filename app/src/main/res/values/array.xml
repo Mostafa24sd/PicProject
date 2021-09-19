@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sort_search">
+        <item>Latest</item>
+        <item>Relevant</item>
+    </string-array>
+
+    <string-array name="sort_list_user">
+        <item>Latest</item>
+        <item>Oldest</item>
+        <item>Popular</item>
+        <item>Views</item>
+        <item>Downloads</item>
+    </string-array>
+
+    <string-array name="sort_list_topic">
+        <item>Latest</item>
+        <item>Oldest</item>
+        <item>Popular</item>
+    </string-array>
+
+
+
+</resources>
