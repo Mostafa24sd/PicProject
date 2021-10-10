@@ -12,6 +12,14 @@
         <action
             android:id="@+id/action_searchFragment_to_detailFragment"
             app:destination="@id/detailFragment" />
+        <argument
+            android:name="query"
+            app:argType="string"
+            android:defaultValue="random" />
+        <argument
+            android:name="sort"
+            app:argType="com.example.picproject.SortBy"
+            android:defaultValue="RELEVANT" />
     </fragment>
     <fragment
         android:id="@+id/homeFragment"
@@ -63,5 +71,8 @@
         <argument
             android:name="title"
             app:argType="string" />
+        <argument
+            android:name="sort"
+            app:argType="com.example.picproject.SortBy" />
     </fragment>
 </navigation>

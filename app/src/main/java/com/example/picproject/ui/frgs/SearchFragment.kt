@@ -18,8 +18,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.picproject.R
 import com.example.picproject.SortBy
 import com.example.picproject.databinding.SearchFragmentBinding
-import com.example.picproject.ui.DEFAULT_SEARCH_QUERY
-import com.example.picproject.ui.DEFAULT_SEARCH_SORT
 import com.example.picproject.ui.adapters.SearchPhotoAdapter
 import com.example.picproject.ui.vm.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -83,8 +81,7 @@ class SearchFragment : Fragment(R.layout.search_fragment) {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
-                    DEFAULT_SEARCH_QUERY = it
-                    viewModel.searchPhotos(DEFAULT_SEARCH_QUERY, DEFAULT_SEARCH_SORT)
+                    viewModel.setQuery(it)
                 }
                 return true
             }
@@ -98,22 +95,20 @@ class SearchFragment : Fragment(R.layout.search_fragment) {
 
         sortItem.setOnMenuItemClickListener {
             val builder = AlertDialog.Builder(requireContext())
-            builder.setTitle("Sort by::")
+            builder.setTitle("Sort by:")
             val sizes = R.array.sort_search
 
             var query = searchView.query.toString()
             if (query.isNullOrEmpty())
-                query = DEFAULT_SEARCH_QUERY
+                viewModel.setQuery(query)
 
             builder.setItems(sizes) { dialog, which ->
                 when (which) {
                     0 -> {
-                        viewModel.searchPhotos(query, SortBy.LATEST)
-                        DEFAULT_SEARCH_SORT = SortBy.LATEST
+                        viewModel.setOrder(SortBy.LATEST)
                     }
                     1 -> {
-                        viewModel.searchPhotos(query, SortBy.POPULAR)
-                        DEFAULT_SEARCH_SORT = SortBy.POPULAR
+                        viewModel.setOrder(SortBy.POPULAR)
                     }
                 }
                 dialog.dismiss()

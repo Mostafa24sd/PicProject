@@ -5,7 +5,6 @@ import androidx.lifecycle.*
 import androidx.paging.cachedIn
 import com.example.picproject.SortBy
 import com.example.picproject.data.search.SearchRepository
-import com.example.picproject.ui.DEFAULT_SEARCH_QUERY
 import com.example.picproject.ui.frgs.TAG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -13,41 +12,32 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val repository: SearchRepository,
-    private val handle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val currentQuery = handle.getLiveData(CURRENT_QUERY, DEFAULT_QUERY)
-    private val currentSort = handle.getLiveData(CURRENT_SORT, DEFAULT_SORT)
-
-
-    private val combinedValues = MediatorLiveData<Pair<String?, String?>>().apply {
-        addSource(currentQuery) {
-            value = Pair(it, currentSort.value)
+    private val combinedValues = MediatorLiveData<Pair<String?, SortBy?>>().apply {
+        addSource(savedStateHandle.getLiveData<String>("query")) {
+            value = Pair(it, savedStateHandle.getLiveData<SortBy>("sort").value)
         }
-        addSource(currentSort) {
-            value = Pair(currentQuery.value, it)
+        addSource(savedStateHandle.getLiveData<SortBy>("sort")) {
+            value = Pair(savedStateHandle.getLiveData<String>("query").value, it)
         }
     }
 
     val photos = Transformations.switchMap(combinedValues) {
         val query = it.first
-        val sortBy = it.second
+        val sortBy = it.second?.name
+        Log.d(TAG, "q: $query,    s:$sortBy")
         if (!query.isNullOrEmpty() && !sortBy.isNullOrEmpty()) {
-            Log.d(TAG, "f: ${it.first} , s: ${it.second}")
             repository.getSearchResults(query, sortBy).cachedIn(viewModelScope)
         } else null
     }
 
-
-    fun searchPhotos(query: String, sortBy: SortBy) {
-        currentQuery.value = query
-        currentSort.value = sortBy.name
+    fun setQuery(query: String) {
+        savedStateHandle.set("query", query)
     }
 
-    companion object {
-        private const val CURRENT_QUERY = "current_query"
-        private const val CURRENT_SORT = "current_sort"
-        private val DEFAULT_QUERY = DEFAULT_SEARCH_QUERY
-        private val DEFAULT_SORT = SortBy.LATEST.name
+    fun setOrder(order: SortBy) {
+        savedStateHandle.set("sort", order)
     }
 }

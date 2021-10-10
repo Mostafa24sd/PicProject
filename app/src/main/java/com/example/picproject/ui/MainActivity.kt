@@ -14,11 +14,8 @@ import com.example.picproject.ui.frgs.ListType
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_main.*
 
-var DEFAULT_SEARCH_QUERY = "random"
-var DEFAULT_LIST_KEY = "TEST"
-var DEFAULT_LIST_SORT = SortBy.LATEST
-var DEFAULT_SEARCH_SORT = SortBy.LATEST
-var DEFAULT_LIST_TYPE = ListType.TOPIC
+/*var DEFAULT_SEARCH_QUERY = "random"
+var DEFAULT_SEARCH_SORT = SortBy.LATEST*/
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {

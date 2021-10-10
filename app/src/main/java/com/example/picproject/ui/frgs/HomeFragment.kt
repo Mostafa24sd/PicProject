@@ -7,10 +7,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.picproject.R
+import com.example.picproject.SortBy
 import com.example.picproject.data.Resource
 import com.example.picproject.databinding.HomeFragmentBinding
-import com.example.picproject.ui.DEFAULT_LIST_KEY
-import com.example.picproject.ui.DEFAULT_LIST_TYPE
 import com.example.picproject.ui.adapters.TopicAdapter
 import com.example.picproject.ui.vm.HomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -37,7 +36,8 @@ class HomeFragment : Fragment(R.layout.home_fragment) {
                 HomeFragmentDirections.actionHomeFragmentToListFragment(
                     it.id,
                     ListType.TOPIC,
-                    it.title
+                    it.title,
+                    SortBy.POPULAR
                 )
             findNavController().navigate(action)
         }

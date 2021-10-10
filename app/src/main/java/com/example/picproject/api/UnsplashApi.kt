@@ -12,8 +12,14 @@ import retrofit2.http.Query
 interface UnsplashApi {
     companion object {
         const val BASE_URL = "https://api.unsplash.com/"
-       const val ACCESS_KEY =
-            "DJLJ3W5ODUXKU2HbB6JP4aDAJZeP1W5yCFN_IgdgCjo"     //DJLJ3W5ODUXKU2HbB6JP4aDAJZeP1W5yCFN_IgdgCjo   //jt1A1Zd0a5K1X0nR5bbnkOj0DwFqs6l6aOKkHeAkLcA     //-Tp8IPhiMCiH8SAdgdF92l-2eTxc8gLJvXdPrKsINTc
+        const val ACCESS_KEY2 =
+            "DJLJ3W5ODUXKU2HbB6JP4aDAJZeP1W5yCFN_IgdgCjo"
+        const val ACCESS_KEY4 =
+            "jt1A1Zd0a5K1X0nR5bbnkOj0DwFqs6l6aOKkHeAkLcA"
+        const val ACCESS_KEY3 =
+            "Tp8IPhiMCiH8SAdgdF92l-2eTxc8gLJvXdPrKsINTc"
+        const val ACCESS_KEY =
+            "ece4fa5efbe76bcec26bf982d7b7ef8b27bd80d832dbe8a40bd954448fc4320a"
     }
 
     @GET("search/photos")

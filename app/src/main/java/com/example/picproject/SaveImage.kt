@@ -2,7 +2,9 @@ package com.example.picproject
 
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -13,8 +15,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
-import android.content.Intent
-import android.net.Uri
 
 
 class SaveImage {
@@ -63,7 +63,7 @@ class SaveImage {
 
             val intent = Intent(Intent.ACTION_ATTACH_DATA)
             intent.addCategory(Intent.CATEGORY_DEFAULT)
-            intent.setDataAndType(Uri.fromFile(directory), "image/jpeg")
+            intent.setDataAndType(Uri.fromFile(image), "image/jpeg")
             intent.putExtra("mimeType", "image/jpeg")
             context.startActivity(Intent.createChooser(intent, "Set as:"))
         }

@@ -7,6 +7,7 @@ import android.graphics.Bitmap.CompressFormat
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.DisplayMetrics
@@ -22,15 +23,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.example.picproject.R
-import com.example.picproject.SaveImage
-import com.example.picproject.calculate
+import com.example.picproject.*
 import com.example.picproject.data.Resource
 import com.example.picproject.data.UnsplashPhoto
 import com.example.picproject.databinding.DetailsFragmentBinding
 import com.example.picproject.db.PhotoDao
-import com.example.picproject.ui.DEFAULT_LIST_KEY
-import com.example.picproject.ui.DEFAULT_LIST_TYPE
 import com.example.picproject.ui.vm.DetailViewModel
 import com.nabinbhandari.android.permissions.PermissionHandler
 import com.nabinbhandari.android.permissions.Permissions
@@ -41,9 +38,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.IOException
 import java.net.URL
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -140,13 +136,12 @@ class DetailFragment : Fragment(R.layout.details_fragment) {
             }
 
             userPart.setOnClickListener {
-                DEFAULT_LIST_KEY = photo.user.username
-                DEFAULT_LIST_TYPE = ListType.USER
-
                 val action =
                     DetailFragmentDirections.actionDetailFragmentToListFragment(
                         photo.user.username,
-                        ListType.USER, photo.user.name
+                        ListType.USER,
+                        photo.user.name,
+                        SortBy.POPULAR
                     )
                 findNavController().navigate(action)
             }
@@ -166,13 +161,29 @@ class DetailFragment : Fragment(R.layout.details_fragment) {
                 null,
                 object : PermissionHandler() {
                     override fun onGranted() {
-                        selectSizeDialog(view, photo)
+                        selectSizeDialog(photo)
                     }
                 })
         }
 
         set_wallpaper.setOnClickListener {
+            CoroutineScope(IO + handler).launch {
+                val url = URL(photo.urls.full)
+                val image: Bitmap =
+                    BitmapFactory.decodeStream(url.openConnection().getInputStream())
 
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val uri = getMediaDirUri(requireContext(), photo.id + ".jpg", "image/jpeg")
+                    if (saveImg(requireContext(), image, uri, null)) {
+                        setWall(requireContext(), uri)
+                    }
+                } else {
+                    val file = getMediaDirFile(photo.id + ".jpg")
+                    if (saveImg(requireContext(), image, null, file)) {
+                        setWall(requireContext(), Uri.fromFile(file))
+                    }
+                }
+            }
         }
 
         viewModel.getPhotoByID(photo.id).observe(viewLifecycleOwner, { pic ->
@@ -241,7 +252,7 @@ class DetailFragment : Fragment(R.layout.details_fragment) {
         })
     }
 
-    private fun selectSizeDialog(view: View, photo: UnsplashPhoto) {
+    private fun selectSizeDialog(photo: UnsplashPhoto) {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Select Size:")
         val sizes = arrayOf(
@@ -255,23 +266,23 @@ class DetailFragment : Fragment(R.layout.details_fragment) {
         builder.setItems(sizes) { dialog, which ->
             when (which) {
                 0 -> {
-                    downloadImage(view, photo.id + "_thumb.jpg", photo.urls.thumb)
+                    downloadImage(photo.id + "_thumb.jpg", photo.urls.thumb)
                     dialog.dismiss()
                 }
                 1 -> {
-                    downloadImage(view, photo.id + "_small.jpg", photo.urls.small)
+                    downloadImage(photo.id + "_small.jpg", photo.urls.small)
                     dialog.dismiss()
                 }
                 2 -> {
-                    downloadImage(view, photo.id + "_regular.jpg", photo.urls.regular)
+                    downloadImage(photo.id + "_regular.jpg", photo.urls.regular)
                     dialog.dismiss()
                 }
                 3 -> {
-                    downloadImage(view, photo.id + "_full.jpg", photo.urls.full)
+                    downloadImage(photo.id + "_full.jpg", photo.urls.full)
                     dialog.dismiss()
                 }
                 4 -> {
-                    downloadImage(view, photo.id + "_raw.jpg", photo.urls.raw)
+                    downloadImage(photo.id + "_raw.jpg", photo.urls.raw)
                     dialog.dismiss()
                 }
             }
@@ -279,24 +290,49 @@ class DetailFragment : Fragment(R.layout.details_fragment) {
 
         val dialog = builder.create()
         dialog.show()
-
     }
 
-    private fun downloadImage(view: View, title: String, link: String) {
-        CoroutineScope(IO + handler).launch {
-            try {
-                val url = URL(link)
-                val image: Bitmap =
-                    BitmapFactory.decodeStream(url.openConnection().getInputStream())
-                SaveImage().saveImageToStorage(
-                    requireContext(),
-                    image,
-                    title,
-                    "image/jpeg"
-                )
+    private fun downloadImage(title: String, link: String) {
+        val dialogBuilder = AlertDialog.Builder(requireContext())
+        dialogBuilder.setTitle("Downloading...")
+            .setMessage("Please wait")
+            .setCancelable(false)
+            .setNegativeButton("Cancel") { dialogInterface, i ->
+                dialogInterface.dismiss()
+            }
 
-            } catch (e: IOException) {
-                Log.d(TAG, "error: ${e.localizedMessage}")
+        val dialog = dialogBuilder.create()
+        dialog.show()
+
+        CoroutineScope(IO + handler).launch {
+            val url = URL(link)
+            val image: Bitmap =
+                BitmapFactory.decodeStream(url.openConnection().getInputStream())
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val uri = getMediaDirUri(requireContext(), title, "image/jpeg")
+                if (saveImg(requireContext(), image, uri, null)) {
+                    withContext(Main) {
+                        dialog.dismiss()
+                        Toast.makeText(
+                            requireContext(),
+                            "Saved Successfully",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } else {
+                val file = getMediaDirFile(title)
+                if (saveImg(requireContext(), image, null, file)) {
+                    withContext(Main) {
+                        dialog.dismiss()
+                        Toast.makeText(
+                            requireContext(),
+                            "Saved Successfully",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
         }
     }
@@ -375,13 +411,6 @@ class DetailFragment : Fragment(R.layout.details_fragment) {
         mapIntent.setPackage("com.google.android.apps.maps")
         startActivity(mapIntent)
         mapIntent.resolveActivity(requireContext().packageManager)?.let {
-        }
-    }
-
-    private fun File.writeBitmap(bitmap: Bitmap, format: Bitmap.CompressFormat, quality: Int) {
-        outputStream().use { out ->
-            bitmap.compress(format, quality, out)
-            out.flush()
         }
     }
 }

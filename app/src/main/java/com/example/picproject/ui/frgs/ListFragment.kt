@@ -16,8 +16,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.picproject.R
 import com.example.picproject.SortBy
 import com.example.picproject.databinding.ListFragmentBinding
-import com.example.picproject.ui.DEFAULT_LIST_KEY
-import com.example.picproject.ui.DEFAULT_LIST_SORT
 import com.example.picproject.ui.adapters.SearchPhotoAdapter
 import com.example.picproject.ui.vm.ListViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,14 +57,9 @@ class ListFragment : Fragment(R.layout.list_fragment) {
             listRecyclerview.adapter = adapter
         }
 
-        viewModel.photos.observe(viewLifecycleOwner, {
+        viewModel.filteredData.observe(viewLifecycleOwner, {
             adapter.submitData(viewLifecycleOwner.lifecycle, it)
         })
-
-        if (DEFAULT_LIST_KEY != args.key) {
-            viewModel.refresh(args.key, DEFAULT_LIST_SORT)
-            DEFAULT_LIST_KEY = args.key
-        }
 
         when (args.type) {
             ListType.TOPIC -> (activity as AppCompatActivity?)?.supportActionBar?.title =
@@ -93,17 +86,17 @@ class ListFragment : Fragment(R.layout.list_fragment) {
             builder.setItems(sort) { dialog, which ->
                 if (args.type == ListType.USER)
                     when (which) {
-                        0 -> viewModel.refresh(args.key, SortBy.LATEST)
-                        1 -> viewModel.refresh(args.key, SortBy.OLDEST)
-                        2 -> viewModel.refresh(args.key, SortBy.POPULAR)
-                        3 -> viewModel.refresh(args.key, SortBy.VIEWS)
-                        4 -> viewModel.refresh(args.key, SortBy.DOWNLOADS)
+                        0 -> viewModel.setOrder(SortBy.LATEST)
+                        1 -> viewModel.setOrder(SortBy.OLDEST)
+                        2 -> viewModel.setOrder(SortBy.POPULAR)
+                        3 -> viewModel.setOrder(SortBy.VIEWS)
+                        4 -> viewModel.setOrder(SortBy.DOWNLOADS)
                     }
                 else
                     when (which) {
-                        0 -> viewModel.refresh(args.key, SortBy.LATEST)
-                        1 -> viewModel.refresh(args.key, SortBy.OLDEST)
-                        2 -> viewModel.refresh(args.key, SortBy.POPULAR)
+                        0 -> viewModel.setOrder(SortBy.LATEST)
+                        1 -> viewModel.setOrder(SortBy.OLDEST)
+                        2 -> viewModel.setOrder(SortBy.POPULAR)
                     }
                 dialog.dismiss()
             }

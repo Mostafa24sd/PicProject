@@ -3,6 +3,7 @@ package com.example.picproject.data.search
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.liveData
+import com.example.picproject.SortBy
 import com.example.picproject.api.UnsplashApi
 import javax.inject.Inject
 import javax.inject.Singleton
